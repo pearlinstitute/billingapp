@@ -1,0 +1,447 @@
+<html>
+
+<head>
+    <style>
+        .main {
+            width: 1378px;
+            margin: auto;
+            padding: 5px;
+            border: 2px solid black;
+        }
+
+        .box1,
+        .box2 {
+            float: left;
+            margin: 10px;
+            border: 2px solid black;
+        }
+
+        .clearfix {
+            clear: both;
+        }
+
+        .box1 {
+            width: 400px;
+            padding: 10px;
+        }
+
+        .box2 {
+            width: 800px;
+            padding: 10px;
+        }
+
+        .box1 input[type='text'],
+        textarea,
+        select,
+        input[type='button'] {
+            width: 90%;
+            margin-bottom: 15px;
+            padding: 5px;
+        }
+
+        /* Billing Area */
+
+        .bill{
+            width:1000px;
+            margin:auto;
+            padding:10px;
+            border:2px solid black;
+            text-align: center;
+        }
+
+        .customer{
+            text-align: left;
+        }
+
+
+        .mainDetails, .contactDetails{
+            float:left;
+            margin:10px;
+        }
+
+        .mainDetails{
+            width:700px;
+            
+        }
+
+        .contactDetails{
+            width: 250px;
+        }
+
+
+        .customer .title{
+            font-size:30px;
+            font-weight: bold;
+        }
+
+        .productList{
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        .notice{
+            float:left;
+        }
+
+        .amountDetails{
+            float: right;
+            margin:10px;
+        }
+
+
+
+        
+    </style>
+</head>
+
+<body onload="myLoading();">
+    <!-- Hidden the main content to create a Bill Design -->
+    <div class="main" id="mainDiv">
+
+        <div class="box1">
+            <div class="customer">
+                <h3>Customer Details</h3>
+                <input type="text" placeholder="Enter Customer Name..." id="Customer">
+                <span id="errCustomer"></span><br />
+
+                <input type="text" placeholder="Enter Customer Contact..." id="Contact">
+                <span id="errContact"></span><br />
+
+                <input type="text" placeholder="Enter Customer Email..." id="Email">
+                <span id="errEmail"></span><br />
+
+                <textarea id="Address" placeholder="Enter Address"></textarea>
+                <span id="errAddress"></span><br />
+
+            </div>
+            <div class="products">
+                <h3>Product Details</h3>
+                <select id="ProName" onchange="getRate();">
+
+                </select>
+                <span id="errProName"></span><br />
+
+                <input type="text" placeholder="Enter Product Rate..." onchange="calculateAmount();" id="Rate">
+                <span id="errRate"></span><br />
+
+                <input type="text" placeholder="Enter Product Quantity..." onchange="calculateAmount();" id="QTY">
+                <span id="errQTY"></span><br />
+
+                <input type="text" placeholder="Tax Amount..." id="Tax" onchange="calculateAmount();">
+                <span id="errTax"></span><br />
+                <input type="text" placeholder="Final Amount..." id="Amount">
+                <span id="errAmount"></span><br />
+
+                <input type="button" value="Add To List" onclick="addToList();" />
+
+                <input type="button" value="Generate Final Bill" onclick="generateBill();">
+
+            </div>
+
+        </div>
+
+        <div class="box2" id="tableBox">
+
+        </div>
+        <div class="clearfix"></div>
+
+    </div>
+
+
+    <div class="bill" id="billDiv" style="display: none;">
+
+        <h3>XYZ Business house</h3>
+        <p>Address of the Business with Contact and Email</p>
+        <hr/>
+
+        <div class="customer">
+
+            <div class="mainDetails">
+                <div class="title" id="cstTitle">Name of Customer</div>
+                <p id="cstAdr">Address of Customer</p>
+            </div>
+            <div class="contactDetails">
+                <div id="cstCont">Contact</div>
+                <div id="cstEm"></div>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+
+        <div class="productList" id="billProductList">
+          
+        </div>
+
+        <div class="footer">
+            <div class="notice">
+                Goods once sold will not be taken back 
+                after 2 days...
+            </div>
+            <div class="amountDetails">
+                
+                <div id="cstAmt">Amount</div>
+            </div>
+
+            <div class="clearfix"></div>
+        </div>
+
+    </div>
+
+
+    <script>
+        //////////////////
+        var ProNames = new Array();
+        var ProRates = new Array();
+        var ProQtys = new Array();
+        var ProTaxes = new Array();
+        var ProAmounts = new Array();
+
+        ////////////
+        var productsArray = new Array("Laptop", "Charger", "Battery", "Cover", "Power bank");
+        var rateArray = new Array(50000, 800, 1500, 300, 1000);
+
+        function myLoading() {
+            var selectProductList = document.getElementById("ProName");
+
+            var proList = "<option value='-1'>Select Product</option>";
+            var x = 0;
+            for (x = 0; x < productsArray.length; x++) {
+                proList = proList + "<option value='" + x + "'>" + productsArray[x] + "</option>";
+
+            }
+
+            selectProductList.innerHTML = proList;
+
+        }
+
+        function getRate() {
+            var selectProductList = document.getElementById("ProName");
+            var txtRate = document.getElementById("Rate");
+            var proRate = 0;
+            if (selectProductList.value > -1) {
+
+                proRate = rateArray[selectProductList.value];
+
+                txtRate.value = proRate;
+            } else {
+                resetTextboxes();
+
+
+            }
+
+            calculateAmount();
+        }
+
+        function calculateAmount() {
+
+            var txtRate = document.getElementById("Rate");
+            var txtQty = document.getElementById("QTY");
+            var txtTax = document.getElementById("Tax");
+
+            var txtFinalAmount = document.getElementById("Amount");
+
+            if (txtQty.value.length > 0 && txtRate.value.length > 0 && txtTax.value.length > 0) {
+                var rate = eval(txtRate.value);
+                var qty = eval(txtQty.value);
+                var taxPercent = eval(txtTax.value) / 100;
+
+                var rawAmount = rate * qty;
+
+                var taxAmount = rawAmount * taxPercent;
+
+                var finalAmount = rawAmount + taxAmount;
+
+                txtFinalAmount.value = finalAmount;
+
+
+            }
+        }
+
+        function resetTextboxes() {
+            var txtQty = document.getElementById("QTY");
+            var txtTax = document.getElementById("Tax");
+            var txtRate = document.getElementById("Rate");
+
+            var txtFinalAmount = document.getElementById("Amount");
+
+            txtQty.value = "";
+            txtTax.value = "";
+            txtRate.value = "";
+            txtFinalAmount.value = "";
+
+        }
+
+        function addToList() {
+            var CstName = document.getElementById("Customer");
+            var CstEmail = document.getElementById("Email");
+            var CstContact = document.getElementById("Contact");
+            var CstAddress = document.getElementById("Address");
+            var SelProduct = document.getElementById("ProName");
+            var txtRate = document.getElementById("Rate");
+            var txtQty = document.getElementById("QTY");
+            var txtTax = document.getElementById("Tax");
+            var txtFinalAmount = document.getElementById("Amount");
+            var tableBox = document.getElementById("tableBox");
+
+            if (CstName.value.length > 0 &&
+                CstContact.value.length > 0 &&
+                CstEmail.value.length > 0 &&
+                CstAddress.value.length > 0 &&
+                txtRate.value.length > 0 &&
+                txtQty.value.length > 0 &&
+                txtTax.value.length > 0 &&
+                txtFinalAmount.value.length > 0 &&
+                SelProduct.value > -1
+            ) {
+
+
+                ProNames.push(productsArray[SelProduct.value]);
+                ProRates.push(txtRate.value);
+                ProQtys.push(txtQty.value);
+                ProTaxes.push(txtTax.value);
+                ProAmounts.push(txtFinalAmount.value);
+
+
+                //Generate Table Again after add the Data
+                genTableData();
+
+                resetTextboxes();
+
+            } else {
+                alert("Enter all values");
+            }
+
+
+        }
+
+        function removeItem(index) {
+
+            ProNames.splice(index, 1);
+            ProRates.splice(index, 1);
+            ProQtys.splice(index, 1);
+            ProTaxes.splice(index, 1);
+            ProAmounts.splice(index, 1);
+
+            //Generate Table Again after Removal
+            genTableData();
+        }
+
+        function genTableData() {
+
+            var proTable = "";
+
+            proTable = proTable + "<table border='2' style='width:100%;' cellspacing='10'>";
+
+            proTable = proTable + "<tr>";
+            proTable = proTable + "<th>Name</th>";
+            proTable = proTable + "<th>Rate</th>";
+            proTable = proTable + "<th>Qty</th>";
+            proTable = proTable + "<th>Tax</th>";
+            proTable = proTable + "<th>Amount</th>";
+            proTable = proTable + "<th>Remove</th>";
+            proTable = proTable + "</tr>";
+            var x = 0;
+            for (x = 0; x < ProNames.length; x++) {
+                proTable = proTable + "<tr>";
+
+                proTable = proTable + "<td>" + ProNames[x] + "</td>";
+                proTable = proTable + "<td>" + ProRates[x] + "</td>";
+                proTable = proTable + "<td>" + ProQtys[x] + "</td>";
+                proTable = proTable + "<td>" + ProTaxes[x] + "</td>";
+                proTable = proTable + "<td>" + ProAmounts[x] + "</td>";
+                proTable = proTable + "<td><button onclick='removeItem(" + x + ")'>Remove</button></td>";
+
+                proTable = proTable + "</tr>";
+            }
+
+
+            proTable = proTable + "</table>";
+
+
+            tableBox.innerHTML = proTable;
+
+
+        }
+    
+    
+        function generateBill(){
+
+            var divMain=document.getElementById("mainDiv");
+            var divBill=document.getElementById("billDiv");
+
+            divMain.style.display="none";
+
+            divBill.style.display="block";
+            var cstTitle=document.getElementById("cstTitle");
+            var cstAdr=document.getElementById("cstAdr");
+            var cstCont=document.getElementById("cstCont");
+            var cstEm=document.getElementById("cstEm");
+            var billProductList=document.getElementById("billProductList");
+            var cstAmt=document.getElementById("cstAmt");
+
+
+            var CstName = document.getElementById("Customer");
+            var CstEmail = document.getElementById("Email");
+            var CstContact = document.getElementById("Contact");
+            var CstAddress = document.getElementById("Address");
+            
+            cstTitle.innerHTML=CstName.value;
+            cstEm.innerHTML=CstEmail.value;
+            cstCont.innerHTML=CstContact.value;
+            cstAdr.innerHTML=CstAddress.value;
+
+
+
+            genBillTableData();
+
+            //Calculate the Total Tax and Amount
+            var x=0;
+            var totalAmount=0;
+            for(x=0;x<ProAmounts.length;x++){
+                totalAmount=totalAmount+eval(ProAmounts[x]);
+            }
+
+            cstAmt.innerHTML="Rs."+totalAmount+"/-";
+        }
+
+
+        function genBillTableData() {
+
+            var billProductList=document.getElementById("billProductList");
+        var proTable = "<table border='2' style='width:100%;'>";
+
+
+        proTable = proTable + "<tr>";
+        proTable = proTable + "<th>Name</th>";
+        proTable = proTable + "<th>Rate</th>";
+        proTable = proTable + "<th>Qty</th>";
+        proTable = proTable + "<th>Tax</th>";
+        proTable = proTable + "<th>Amount</th>";
+        
+        proTable = proTable + "</tr>";
+        var x = 0;
+        for (x = 0; x < ProNames.length; x++) {
+            proTable = proTable + "<tr>";
+
+            proTable = proTable + "<td>" + ProNames[x] + "</td>";
+            proTable = proTable + "<td>" + ProRates[x] + "</td>";
+            proTable = proTable + "<td>" + ProQtys[x] + "</td>";
+            proTable = proTable + "<td>" + ProTaxes[x] + "</td>";
+            proTable = proTable + "<td>" + ProAmounts[x] + "</td>";
+            proTable = proTable + "</tr>";
+        }
+
+
+        proTable = proTable + "</table>";
+
+
+        billProductList.innerHTML = proTable;
+
+
+        }
+
+
+    </script>
+
+</body>
+
+</html>
